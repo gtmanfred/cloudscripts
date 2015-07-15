@@ -8,7 +8,7 @@ It lists the load balancer pools and vips, then it lists the servers in that
 load balancer pool with the uuid of the server.
 
 # Example:
-    python rcv3.py --username <username> --apikey <apikey> --region <REGION>
+    python scripts/rcv3.py --username <username> --apikey <apikey> --region <REGION>
 
 # Requirements:
     requests
@@ -16,7 +16,7 @@ load balancer pool with the uuid of the server.
 from __future__ import print_function
 import argparse
 
-from auth import Auth
+from libs.auth import Auth
 
 
 def main():
