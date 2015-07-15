@@ -30,9 +30,12 @@ def main():
     this = RCv3(args.username, args.apikey, args.region.lower())
 
     for pool in this.pools:
-        print('\n{name}: {virtual_ip}'.format(**pool))
+        print('\n{name}:'.format(**pool))
+        print('\tUUID: {id}'.format(**pool))
+        print('\tIP: {virtual_ip}'.format(**pool))
+        print('\tCloud Servers:')
         for cloudserver in this.cloudservers(pool['id']):
-            print('\t{name}: {id}'.format(**cloudserver['cloud_server']))
+            print('\t\t{name}: {id}'.format(**cloudserver['cloud_server']))
 
 
 if __name__ == '__main__':
