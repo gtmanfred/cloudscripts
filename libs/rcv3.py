@@ -1,10 +1,17 @@
+# -*- coding: utf-8 -*-
 from libs.auth import Auth
 
 ENDPOINT='https://{0}.rackconnect.api.rackspacecloud.com/v3/{1}'
 
 class RCv3(Auth):
+    """
+    Class for getting information about rackconnect v3 setup
+
+    http://docs.rcv3.apiary.io/
+    """
     @property
     def rc3endpoint(self):
+        """Api endpoint for rcv3 apis"""
         return ENDPOINT.format(self.region.lower(), self.tenant)
 
     @property

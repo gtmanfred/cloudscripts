@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import requests
 import json
 import requests.packages.urllib3
@@ -6,6 +7,11 @@ requests.packages.urllib3.disable_warnings()
 IDENTITY='https://identity.api.rackspacecloud.com/v2.0/tokens'
 
 class Auth(object):
+    """
+    Base class for all cloud scripts.
+
+    http://docs.rackspace.com/
+    """
     def __init__(self, username, apikey, region, endname=None, cloudfeed=None):
         self.sess = requests.Session()
         data = {
