@@ -34,8 +34,8 @@ def main():
     pools = this.sess.get('{0}/load_balancer_pools'.format(rc3endpoint)).json()
 
     for pool in pools:
-        print('\n{name}: {virtual_ip}'.format(**pool))
         cloudservers = this.sess.get('{0}/load_balancer_pools/{1}/nodes/details'.format(rc3endpoint, pool['id'])).json()
+        print('\n{name}: {virtual_ip}'.format(**pool))
         for cloudserver in cloudservers:
             print('\t{name}: {id}'.format(**cloudserver['cloud_server']))
 
