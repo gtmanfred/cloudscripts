@@ -16,7 +16,7 @@ load balancer pool with the uuid of the server.
 from __future__ import print_function
 import argparse
 
-from libs.auth import Auth
+from libs.rcv3 import RCv3
 
 
 def main():
@@ -27,16 +27,11 @@ def main():
     parser.add_argument('-r', '--region', required=True, type=str, choices=regions, help='Region for cloud account')
     args = parser.parse_args()
 
-    this = Auth(args.username, args.apikey, args.region.lower(), 'cloudServersOpenStack')
+    this = RCv3(args.username, args.apikey, args.region.lower())
 
-    rc3endpoint='https://{0}.rackconnect.api.rackspacecloud.com/v3/{1}'.format(this.region.lower(), this.tenant)
-
-    pools = this.sess.get('{0}/load_balancer_pools'.format(rc3endpoint)).json()
-
-    for pool in pools:
-        cloudservers = this.sess.get('{0}/load_balancer_pools/{1}/nodes/details'.format(rc3endpoint, pool['id'])).json()
+    for pool in this.pools:
         print('\n{name}: {virtual_ip}'.format(**pool))
-        for cloudserver in cloudservers:
+        for cloudserver in this.cloudservers(pool['id']):
             print('\t{name}: {id}'.format(**cloudserver['cloud_server']))
 
 

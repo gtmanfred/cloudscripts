@@ -6,7 +6,7 @@ requests.packages.urllib3.disable_warnings()
 IDENTITY='https://identity.api.rackspacecloud.com/v2.0/tokens'
 
 class Auth(object):
-    def __init__(self, username, apikey, region, endname, cloudfeed=None):
+    def __init__(self, username, apikey, region, endname=None, cloudfeed=None):
         self.sess = requests.Session()
         data = {
             "auth":{
@@ -36,6 +36,8 @@ class Auth(object):
 
     @property
     def endpoint(self):
+        if self.endname is None:
+            return None
         for endpoint in self._endpoints:
             if endpoint['region'] == self.region:
                 ret = endpoint
@@ -46,6 +48,8 @@ class Auth(object):
 
     @property
     def cloudfeedurl(self):
+        if self.endname is None:
+            return None
         for feed in self.endpoint['service']['workspace']:
             if feed['title'] == self.cloudfeed:
                 return feed
