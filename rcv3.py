@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+"""
+This is for pulling down all of the load balancer pools using the
+
+http://docs.rcv3.apiary.io
+
+It lists the load balancer pools and vips, then it lists the servers in that
+load balancer pool with the uuid of the server.
+
+# Example:
+    python rcv3.py --username <username> --apikey <apikey> --region <REGION>
+
+# Requirements:
+    requests
+"""
+from __future__ import print_function
 import argparse
 
 from auth import Auth
@@ -18,7 +34,7 @@ def main():
     pools = this.sess.get('{0}/load_balancer_pools'.format(rc3endpoint)).json()
 
     for pool in pools:
-        print('{name}: {virtual_ip}'.format(**pool))
+        print('\n{name}: {virtual_ip}'.format(**pool))
         cloudservers = this.sess.get('{0}/load_balancer_pools/{1}/nodes/details'.format(rc3endpoint, pool['id'])).json()
         for cloudserver in cloudservers:
             print('\t{name}: {id}'.format(**cloudserver['cloud_server']))
