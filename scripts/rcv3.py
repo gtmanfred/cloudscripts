@@ -27,7 +27,7 @@ def main():
     parser.add_argument('-r', '--region', required=True, type=str, choices=regions, help='Region for cloud account')
     args = parser.parse_args()
 
-    this = RCv3(args.username, args.apikey, args.region.lower())
+    this = RCv3(args.username, apikey=args.apikey, region=args.region.lower())
 
     for pool in this.pools:
         print('\n{name}:'.format(**pool))

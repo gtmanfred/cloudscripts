@@ -12,20 +12,16 @@ class Auth(object):
 
     http://docs.rackspace.com/
     """
-    def __init__(self, username, apikey, region, endname=None, cloudfeed=None):
+    def __init__(self, username, region, apikey=None,
+                 password=None, endname=None, cloudfeed=None):
+        if all([x is None for x in [password, apikey]]):
+            raise Exception('Password or Apikey must be provided')
+        self.username = username
         self.sess = requests.Session()
-        data = {
-            "auth":{
-                "RAX-KSKEY:apiKeyCredentials":{
-                    "username": username,
-                    "apiKey": apikey
-                }
-            }
-        }
-        self.sess.headers = {
-            'Content-type': 'application/json',
-        }
-        resp = self.sess.post(IDENTITY, data=json.dumps(data)).json()
+        if apikey is not None:
+            resp = self._apikey(apikey)
+        elif password is not None:
+            resp = self._password(password)
         self.token = resp['access']['token']['id']
         self.tenant = resp['access']['token']['tenant']['id']
         self.sess.headers['X-Auth-Token'] = self.token
@@ -33,6 +29,34 @@ class Auth(object):
         self.region = region
         self.endname = endname
         self.cloudfeed = cloudfeed
+
+    def _password(self, password):
+        data = {
+            "auth":{
+                "passwordCredentials":{
+                    "username": self.username,
+                    "password": password
+                }
+            }
+        }
+        self.sess.headers = {
+            'Content-type': 'application/json',
+        }
+        return self.sess.post(IDENTITY, data=json.dumps(data)).json()
+
+    def _apikey(self, apikey):
+        data = {
+            "auth":{
+                "RAX-KSKEY:apiKeyCredentials":{
+                    "username": self.username,
+                    "apiKey": apikey
+                }
+            }
+        }
+        self.sess.headers = {
+            'Content-type': 'application/json',
+        }
+        return self.sess.post(IDENTITY, data=json.dumps(data)).json()
 
     @property
     def _endpoints(self):
