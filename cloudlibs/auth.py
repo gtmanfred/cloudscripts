@@ -32,6 +32,7 @@ class Auth(object):
                 resp = cls._password(password)
             cls.token = resp['access']['token']['id']
             cls.tenant = resp['access']['token']['tenant']['id']
+            cls.roles = resp['access']['user']['roles']
             cls.sess.headers['X-Auth-Token'] = cls.token
             cls.catalog = resp['access']['serviceCatalog']
         return super(Auth, cls).__new__(cls)
@@ -104,3 +105,16 @@ class Auth(object):
     @property
     def tenantid(self):
         return self.endpoint['tenantId']
+
+    @property
+    def is_rackconnected(self):
+        for role in self.roles:
+            if role['name'] == 'rack_connect':
+                return 2
+            if role['name'] == 'rackconnect:v3-{0}'.format(self.region):
+                return 3
+        return 0
+
+    @property
+    def is_managed(self):
+        return any([x for x in self.roles if x['name'] == 'rax_managed'])
