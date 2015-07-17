@@ -2,7 +2,7 @@
 import setuptools
 
 setuptools.setup(
-    name='cloudscripts',
+    name='cloudlibs',
     version='0.0.1',
     description='Rackspace cloud api scripts',
     author='Daniel Wallace',
@@ -12,6 +12,6 @@ setuptools.setup(
             'rcv3=scripts.rcv3:main'
         ]
     },
-    packages=['libs', 'scripts'],
+    packages=['cloudlibs'],
     zip_safe=False
 )

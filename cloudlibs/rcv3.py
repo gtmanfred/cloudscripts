@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from libs.auth import Auth
+from __future__ import absolute_import
+from .auth import Auth
 
 ENDPOINT='https://{0}.rackconnect.api.rackspacecloud.com/v3/{1}'
+
 
 class RCv3(Auth):
     """
