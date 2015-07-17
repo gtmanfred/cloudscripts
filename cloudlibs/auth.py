@@ -20,21 +20,29 @@ class Auth(object):
     catalog = None
     def __new__(cls, username, region, apikey=None,
                 password=None, endname=None, cloudfeed=None):
-        object.__new__(cls)
-        if cls.username is None:
+        if Auth.username is None:
             if all([x is None for x in [password, apikey]]):
                 raise Exception('Password or Apikey must be provided')
-            cls.username = username
-            cls.sess = requests.Session()
+            Auth.username = username
+            Auth.sess = requests.Session()
             if apikey is not None:
-                resp = cls._apikey(apikey)
+                resp = Auth._apikey(apikey)
             elif password is not None:
-                resp = cls._password(password)
-            cls.token = resp['access']['token']['id']
-            cls.tenant = resp['access']['token']['tenant']['id']
-            cls.roles = resp['access']['user']['roles']
+                resp = Auth._password(password)
+            Auth.token = resp['access']['token']['id']
+            Auth.tenant = resp['access']['token']['tenant']['id']
+            Auth.roles = resp['access']['user']['roles']
+            Auth.sess.headers['X-Auth-Token'] = Auth.token
+            Auth.catalog = resp['access']['serviceCatalog']
+        object.__new__(cls)
+        if cls.username is None:
+            cls.username = Auth.username
+            cls.sess = requests.Session()
+            cls.token = Auth.token
+            cls.tenant = Auth.tenant
+            cls.roles = Auth.roles
             cls.sess.headers['X-Auth-Token'] = cls.token
-            cls.catalog = resp['access']['serviceCatalog']
+            cls.catalog = Auth.catalog
         return super(Auth, cls).__new__(cls)
 
     def __init__(self, username, region, apikey=None,
