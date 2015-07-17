@@ -4,7 +4,8 @@ import json
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
-IDENTITY='https://identity.api.rackspacecloud.com/v2.0/tokens'
+IDENTITY = 'https://identity.api.rackspacecloud.com/v2.0/tokens'
+
 
 class Auth(object):
     """
@@ -12,51 +13,64 @@ class Auth(object):
 
     http://docs.rackspace.com/
     """
+    username = None
+    sess = None
+    token = None
+    tenant = None
+    catalog = None
+    def __new__(cls, username, region, apikey=None,
+                password=None, endname=None, cloudfeed=None):
+        object.__new__(cls)
+        if cls.username is None:
+            if all([x is None for x in [password, apikey]]):
+                raise Exception('Password or Apikey must be provided')
+            cls.username = username
+            cls.sess = requests.Session()
+            if apikey is not None:
+                resp = cls._apikey(apikey)
+            elif password is not None:
+                resp = cls._password(password)
+            cls.token = resp['access']['token']['id']
+            cls.tenant = resp['access']['token']['tenant']['id']
+            cls.sess.headers['X-Auth-Token'] = cls.token
+            cls.catalog = resp['access']['serviceCatalog']
+        return super(Auth, cls).__new__(cls)
+
     def __init__(self, username, region, apikey=None,
                  password=None, endname=None, cloudfeed=None):
-        if all([x is None for x in [password, apikey]]):
-            raise Exception('Password or Apikey must be provided')
-        self.username = username
-        self.sess = requests.Session()
-        if apikey is not None:
-            resp = self._apikey(apikey)
-        elif password is not None:
-            resp = self._password(password)
-        self.token = resp['access']['token']['id']
-        self.tenant = resp['access']['token']['tenant']['id']
-        self.sess.headers['X-Auth-Token'] = self.token
-        self.catalog = resp['access']['serviceCatalog']
         self.region = region
         self.endname = endname
         self.cloudfeed = cloudfeed
 
-    def _password(self, password):
+    @classmethod
+    def _password(cls, password):
         data = {
-            "auth":{
-                "passwordCredentials":{
-                    "username": self.username,
+            "auth": {
+                "passwordCredentials": {
+                    "username": cls.username,
                     "password": password
                 }
             }
         }
-        self.sess.headers = {
+        cls.sess.headers = {
             'Content-type': 'application/json',
         }
-        return self.sess.post(IDENTITY, data=json.dumps(data)).json()
+        return cls.sess.post(IDENTITY, data=json.dumps(data)).json()
 
-    def _apikey(self, apikey):
+    @classmethod
+    def _apikey(cls, apikey):
         data = {
-            "auth":{
-                "RAX-KSKEY:apiKeyCredentials":{
-                    "username": self.username,
+            "auth": {
+                "RAX-KSKEY:apiKeyCredentials": {
+                    "username": cls.username,
                     "apiKey": apikey
                 }
             }
         }
-        self.sess.headers = {
+        cls.sess.headers = {
             'Content-type': 'application/json',
         }
-        return self.sess.post(IDENTITY, data=json.dumps(data)).json()
+        return cls.sess.post(IDENTITY, data=json.dumps(data)).json()
 
     @property
     def _endpoints(self):
@@ -73,7 +87,10 @@ class Auth(object):
                 ret = endpoint
                 break
         if self.endname == 'cloudFeeds':
-            ret = self.sess.get(ret['publicURL'], headers={'Accept': 'application/vnd.rackspace.atom+json'}).json()
+            ret = self.sess.get(
+                ret['publicURL'],
+                headers={'Accept': 'application/vnd.rackspace.atom+json'}
+            ).json()
         return ret
 
     @property
