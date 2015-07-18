@@ -63,11 +63,8 @@ class Images(Auth):
             '{publicURL}/images'.format(**self.endpoint)
         ).json()
 
-    def get_image_by_name(self, name=None):
-        if name is None:
-            imagename = ''
-        else:
-            imagename = short_names.get(name, name)
+    def get_image_by_name(self, name):
+        imagename = short_names.get(name, name)
 
         resp = self.sess.get(
             '{publicURL}/images?name={name}'.format(
@@ -78,3 +75,4 @@ class Images(Auth):
         for image in resp.get('images', []):
             if image['name'] == imagename:
                 return image['id']
+        return None
