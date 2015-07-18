@@ -16,6 +16,33 @@ from .images import Images
 from .utils import valid_uuid
 
 
+class Server(object):
+    def __init__(self, server, servers):
+        self.servers = servers
+        for key, value in server.items():
+            setattr(self, key, value)
+
+    def _update(self, server=None):
+        if server is None:
+            server = self.servers.get_server_by_uuid(self.id)
+        dict_ = self.__dict__
+        dict_.update(server.__dict__)
+        for key, value in dict_.items():
+            setattr(self, key, value)
+
+    def wait(self, stat='ACTIVE'):
+        while not hasattr(self, 'status'):
+            time.sleep(1)
+            self._update()
+        while self.status != stat:
+            if self.status == 'ERROR':
+                raise Exception(
+                    'Server in error status: {0}'.format(s['name'])
+                )
+            time.sleep(1)
+            self._update()
+        return
+
 class Servers(Auth):
     """
     Class for getting information about cloud servers
@@ -29,22 +56,30 @@ class Servers(Auth):
 
     @property
     def servers(self):
-        return self.sess.get(
+        resp = self.sess.get(
             '{publicURL}/servers/detail'.format(**self.endpoint)
         ).json().get('servers', [])
+        ret = []
+        for s in resp:
+            ret.append(Server(s, self))
+        return ret
 
     def get_server_by_uuid(self, uuid):
         for server in self.servers:
-            if server['id'] == uuid:
+            if server.id == uuid:
                 return server
         return None
 
     def get_servers_by_name(self, name):
-        return self.sess.get(
+        resp = self.sess.get(
             '{publicURL}/servers/detail?name={name}'.format(
                 name=urlquote(name), **self.endpoint
             )
         ).json().get('servers', [])
+        ret = []
+        for s in resp:
+            ret.append(Server(s, self))
+        return ret
 
     @property
     def flavors(self):
@@ -187,10 +222,13 @@ class Servers(Auth):
 
         vm_ = self._validate_inputs(vm_)
 
-        return self.sess.post(
+        resp = self.sess.post(
             '{publicURL}/servers'.format(**self.endpoint),
             data=json.dumps({'server': vm_}),
         ).json().get('server', {})
+        if resp:
+            return Server(resp, self)
+        return False
 
     def delete_server(self, name=None, uuid=None):
         if name is None and uuid is None:
@@ -204,11 +242,12 @@ class Servers(Auth):
             else:
                 server = server[0]
         else:
-            server = {'id': uuid}
+            server = object()
+            server.id = uuid
 
         resp = self.sess.delete('{0}/servers/{1}'.format(
             self.endpoint['publicURL'],
-            server['id']
+            server.id
         ))
 
         if 300 > resp.status_code >= 200:
@@ -217,8 +256,8 @@ class Servers(Auth):
 
     def wait(self, uuid):
         s = self.get_server_by_uuid(uuid)
-        while s.get('status', None) != 'ACTIVE':
-            if s.get('status', None) == 'ERROR':
+        while getattr(s, 'status', None) != 'ACTIVE':
+            if getattr(s, 'status', None) == 'ERROR':
                 raise Exception(
                     'Server in error status: {0}'.format(s['name'])
                 )
