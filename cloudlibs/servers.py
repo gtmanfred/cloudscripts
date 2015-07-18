@@ -77,14 +77,19 @@ class Servers(Auth):
             data=json.dumps({'server': vm_}),
         ).json()
 
-    def delete_server(self, name):
-        server = self.get_servers_by_name(name)
-        if len(server) > 1:
-            raise Exception('More than one server with name: {0}'.format(name))
-        elif len(server) == 0:
-            raise Exception('No server with name: {0}'.format(name))
+    def delete_server(self, name=None, uuid=None):
+        if name is None and uuid is None:
+            raise Exception('Requires one: name or uuid')
+        if uuid is None:
+            server = self.get_servers_by_name(name)
+            if len(server) > 1:
+                raise Exception('More than one server with name: {0}'.format(name))
+            elif len(server) == 0:
+                raise Exception('No server with name: {0}'.format(name))
+            else:
+                server = server[0]
         else:
-            server = server[0]
+            server = {'id': uuid}
 
         resp = self.sess.delete('{0}/servers/{1}'.format(
             self.endpoint['publicURL'],
