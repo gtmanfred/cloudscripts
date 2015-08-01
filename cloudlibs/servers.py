@@ -22,7 +22,7 @@ class Server(object):
         for key, value in server.items():
             setattr(self, key, value)
 
-    def _update(self, server=None):
+    def update(self, server=None):
         if server is None:
             server = self.servers.get_server_by_uuid(self.id)
         dict_ = self.__dict__
@@ -33,14 +33,14 @@ class Server(object):
     def wait(self, stat='ACTIVE'):
         while not hasattr(self, 'status'):
             time.sleep(1)
-            self._update()
+            self.update()
         while self.status != stat:
             if self.status == 'ERROR':
                 raise Exception(
                     'Server in error status: {0}'.format(s['name'])
                 )
             time.sleep(1)
-            self._update()
+            self.update()
         return
 
 class Servers(Auth):
@@ -163,7 +163,7 @@ class Servers(Auth):
 
         ret['networks'] = []
         for network in vm_['networks']:
-            if self.get_network_by_uuid(network):
+            if valid_uuid(network) and self.get_network_by_uuid(network):
                 ret['networks'].append({'uuid': network})
             else:
                 net = self.get_network_by_name(network)
